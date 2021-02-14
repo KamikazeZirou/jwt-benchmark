@@ -2,9 +2,9 @@ package jwt_benchmark_test
 
 import (
 	"crypto/rsa"
+	"github.com/dgrijalva/jwt-go"
 	"io/ioutil"
 	"testing"
-	"github.com/dgrijalva/jwt-go"
 	"time"
 )
 
@@ -194,6 +194,29 @@ func readRsaPubKey2048() *rsa.PublicKey {
 	return key
 }
 
+func readRsaKey1024() *rsa.PrivateKey {
+	bytes, err := ioutil.ReadFile("jwtRS256_1024.key.pem")
+	if err != nil {
+		panic(err)
+	}
+	key, err := jwt.ParseRSAPrivateKeyFromPEM(bytes)
+	if err != nil {
+		panic(err)
+	}
+	return key
+}
+
+func readRsaPubKey1024() *rsa.PublicKey {
+	bytes, err := ioutil.ReadFile("jwtRS256_1024.key.pub.pem")
+	if err != nil {
+		panic(err)
+	}
+	key, err := jwt.ParseRSAPublicKeyFromPEM(bytes)
+	if err != nil {
+		panic(err)
+	}
+	return key
+}
 
 func BenchmarkHS256(b *testing.B) {
 	claim := buildClaim()
@@ -406,6 +429,81 @@ func BenchmarkParseRS512_2048(b *testing.B) {
 	claim := buildClaim()
 	key := readRsaKey2048()
 	pubKey := readRsaPubKey2048()
+	token := jwt.NewWithClaims(jwt.SigningMethodRS512, claim)
+	tokenString, _ := token.SignedString(key)
+	b.ResetTimer()
+
+	for i := 0; i < b.N; i++ {
+		jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+			return pubKey, nil
+		})
+	}
+}
+
+func BenchmarkRS256_1024(b *testing.B) {
+	claim := buildClaim()
+	key := readRsaKey1024()
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		token := jwt.NewWithClaims(jwt.SigningMethodRS256, claim)
+		token.SignedString(key)
+	}
+}
+
+func BenchmarkParseRS256_1024(b *testing.B) {
+	claim := buildClaim()
+	key := readRsaKey1024()
+	pubKey := readRsaPubKey1024()
+	token := jwt.NewWithClaims(jwt.SigningMethodRS256, claim)
+	tokenString, _ := token.SignedString(key)
+	b.ResetTimer()
+
+	for i := 0; i < b.N; i++ {
+		jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+			return pubKey, nil
+		})
+	}
+}
+
+func BenchmarkRS384_1024(b *testing.B) {
+	claim := buildClaim()
+	key := readRsaKey1024()
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		token := jwt.NewWithClaims(jwt.SigningMethodRS384, claim)
+		token.SignedString(key)
+	}
+}
+
+func BenchmarkParseRS384_1024(b *testing.B) {
+	claim := buildClaim()
+	key := readRsaKey1024()
+	pubKey := readRsaPubKey1024()
+	token := jwt.NewWithClaims(jwt.SigningMethodRS384, claim)
+	tokenString, _ := token.SignedString(key)
+	b.ResetTimer()
+
+	for i := 0; i < b.N; i++ {
+		jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+			return pubKey, nil
+		})
+	}
+}
+
+func BenchmarkRS512_1024(b *testing.B) {
+	claim := buildClaim()
+	key := readRsaKey1024()
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		token := jwt.NewWithClaims(jwt.SigningMethodRS512, claim)
+		token.SignedString(key)
+	}
+}
+
+func BenchmarkParseRS512_1024(b *testing.B) {
+	claim := buildClaim()
+	key := readRsaKey1024()
+	pubKey := readRsaPubKey1024()
 	token := jwt.NewWithClaims(jwt.SigningMethodRS512, claim)
 	tokenString, _ := token.SignedString(key)
 	b.ResetTimer()
